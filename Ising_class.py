@@ -103,6 +103,8 @@ class Ising2D:
         plt.show()
 
     def plot_configuraciones(self):
+        plt.figure(figsize=(24,10))
+        plt.suptitle("Snapshoots de las configuraciones",fontsize=25)
         plt.subplot(1,3,1)
         plt.imshow(self.ising2D()[1], extent=[0,self.L,0,self.L], interpolation='nearest')
         plt.xlabel("x",fontsize=10)
@@ -110,12 +112,12 @@ class Ising2D:
         plt.title("Configuración inicial",fontsize=14)
         plt.subplot(1,3,2)
         plt.imshow(self.ising2D()[9], extent=[0,self.L,0,self.L], interpolation='nearest')
-        plt.xlabel("x",fontsize=10)
+        plt.xlabel("H",fontsize=10)
         plt.ylabel("y",fontsize=10)
         plt.title("Configuración intermedia",fontsize=14)
         plt.subplot(1,3,3)
         plt.imshow(self.ising2D()[3], extent=[0,self.L,0,self.L], interpolation='nearest')
-        plt.xlabel("x",fontsize=10)
+        plt.xlabel("H",fontsize=10)
         plt.ylabel("y",fontsize=10)
         plt.title("Configuración final",fontsize=14)
         plt.show()
