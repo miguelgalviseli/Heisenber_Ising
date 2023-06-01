@@ -45,6 +45,9 @@ class Ising2D:
         itera = []
 
         for i in tqdm(range(len(self.H))):
+            #Quiero guardar una copia de los snapshoots en una parte intermedia
+            if i==int(len(self.H)*0.475):
+                Intermedio=S.copy()
             for step in range(self.nsteps):
                 k = random.randint(0, N - 1)
                 delta_E = 2.0 * self.J * S[k] * sum(S[nn] for nn in nbr[k]) + self.H[i] * S[k]
@@ -59,17 +62,20 @@ class Ising2D:
 
             M = np.sum(S) / N
             Mag.append(M)
-
-        conf = [[0 for x in range(self.L)] for y in range(self.L)]
-        conf1 = [[0 for x in range(self.L)] for y in range(self.L)]
+        conf=[[0 for x in range (self.L)] for y in range (self.L)]#Configuración inicial
+        conf1=[[0 for x in range (self.L)] for y in range (self.L)]#Configuración inicial
+        conf_int=[[0 for x in range (self.L)] for y in range (self.L)]#Configuración intermedia
         for k in range(N):
             x, y = self.x_y(k)
             conf[x][y] = S[k]
         for k in range(N):
             X, Y = self.x_y(k)
             conf1[X][Y] = R[k]
+        for k in range (N):
+            x1,y1=self.x_y(k)
+            conf_int[x1][y1]=Intermedio[k]
 
-        return R, conf1, S, conf, sum(E) / float(len(E) * N), E, Mag, E_1, itera
+        return R, conf1, S, conf, sum(E) / float(len(E) * N), E, Mag, E_1, itera, conf_int
     
 
     def plot_magnetizacion(self):
@@ -97,13 +103,20 @@ class Ising2D:
         plt.show()
 
     def plot_configuraciones(self):
-        plt.subplot(121)
+        plt.subplot(1,3,1)
         plt.imshow(self.ising2D()[1], extent=[0,self.L,0,self.L], interpolation='nearest')
-        plt.set_cmap('jet')
-        plt.title('T=%0.2f, L=%d, Espines iniciales'% (self.T,self.L))
-        plt.subplot(122)
+        plt.xlabel("x",fontsize=10)
+        plt.ylabel("y",fontsize=10)
+        plt.title("Configuración inicial",fontsize=14)
+        plt.subplot(1,3,2)
+        plt.imshow(self.ising2D()[9], extent=[0,self.L,0,self.L], interpolation='nearest')
+        plt.xlabel("x",fontsize=10)
+        plt.ylabel("y",fontsize=10)
+        plt.title("Configuración intermedia",fontsize=14)
+        plt.subplot(1,3,3)
         plt.imshow(self.ising2D()[3], extent=[0,self.L,0,self.L], interpolation='nearest')
-        plt.set_cmap('jet')
-        plt.title('T=%0.2f, L=%d, Espines finales'% (self.T,self.L))
+        plt.xlabel("x",fontsize=10)
+        plt.ylabel("y",fontsize=10)
+        plt.title("Configuración final",fontsize=14)
         plt.show()
 

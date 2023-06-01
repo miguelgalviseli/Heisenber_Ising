@@ -5,9 +5,9 @@ import numpy as np
 
 L = 100 # Lado de la red
 T = 1.0 # Temperatura
-nsteps = 100000 # Número de pasos
+nsteps = 40000 # Número de pasos
 J = 0 # Intercambio
-H = np.linspace(-5, 5, 100) # Campo magnético
+H=np.arange(-25,25,0.5) #campo magnetico
 if __name__=='__main__':
     print("Veamos las gráficas pedidas:")
 
