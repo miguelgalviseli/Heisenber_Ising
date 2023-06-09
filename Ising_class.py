@@ -4,6 +4,8 @@ import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
+
+#Clase Ising2D que contiene los métodos para resolver el modelo de Ising en 2D
 class Ising2D:
     def __init__(self, L, T, nsteps, J, H):
         self.L = L
