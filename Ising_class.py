@@ -5,21 +5,22 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from numpy.random import rand
+from scipy.ndimage.filters import gaussian_filter1d
+
 
 class Ising2D:
     def __init__(self, L, T, nsteps, J, H):
-        self.L = L
-        self.T = T
-        self.nsteps = nsteps
-        self.J = J
-        self.H = H
-        self.energy = 0
-        self.N = L * L
+        self.L = L # arista de la red cuadrada
+        self.T = T # temperatura
+        self.nsteps = nsteps # número de pasos de montecarlo
+        self.J = J # Constante de intercambio
+        self.H = H # Campo Magnético
+        self.N = L * L # número de espines
         self.beta = 1.0 / T
         self.nbr = {i: ((i // L) * L + (i + 1) % L, (i + L) % self.N,
                         (i // L) * L + (i - 1) % L, (i - L) % self.N) \
-                    for i in range(self.N)}
-        self.S = [random.choice([1, -1]) for k in range(self.N)]
+                    for i in range(self.N)} # vecinos de cada sitio
+        self.S = [random.choice([1, -1]) for k in range(self.N)] # #Escribe una cadena de N elementos y a cada sitio le asigna un valor aleatorio de +1 o -1
         self.R = [random.choice([1, -1]) for k in range(self.N)]
         self.iso = self.ising_2d()
 
@@ -33,6 +34,7 @@ class Ising2D:
         x = k - y * self.L
         return x, y
 
+    # funcion para el modelo de Ising
     def ising_2d(self):
         energy = 0
         N = self.L * self.L
@@ -53,7 +55,7 @@ class Ising2D:
         itera = []
 
         for i in tqdm(range(len(self.H))):
-            #Quiero guardar una copia de los snapshots en una parte intermedia
+            #Guardar una copia de los snapshots en una parte intermedia para visualizar las configuraciones
             if i==int(len(self.H)*0.475):
                 Intermedio=S.copy()
             for step in range(self.nsteps):
@@ -86,7 +88,7 @@ class Ising2D:
         return R, conf1, S, conf, sum(E) / float(len(E) * N), E, Mag, E_1, itera, conf_int
 
 
-    # función de ajuste
+    # función de ajuste al modelo de tangente hiperbólica
     def tanh(self, x, a, b, c):
         return a * np.tanh(b * x + c)
 
@@ -140,7 +142,7 @@ class Ising2D:
 
         return
 
-    # graficar
+    # graficar energía en función de las iteraciones
     def plot_energia_itera(self):
         plt.figure(figsize=(10, 6))
         plt.plot(self.iso[8], self.iso[7], 'o', color='blue')
@@ -172,6 +174,7 @@ class Ising2D:
 
         return
 
+# clase heredada para realizar las gráficas de Energía, Magnetización y Calor especifíco en función de la temperatua
 class IsingTemp(Ising2D):
     def __init__(self, L, T, nsteps, J, H, nt, eq_steps, mc_steps, t_array):
         super().__init__(L, T, nsteps, J, H)
@@ -184,7 +187,7 @@ class IsingTemp(Ising2D):
         self.X = np.zeros(self.nt)
         self.E = np.zeros(self.nt)
         self.n1 = 1.0 / (mc_steps * self.N * self.N)
-        self.n2 = 1.0 / (mc_steps * self.N * self.N)
+        self.n2 = 1.0 / (mc_steps * mc_steps * self.N * self.N)
         self.t_array = t_array
 
 
@@ -239,28 +242,52 @@ class IsingTemp(Ising2D):
             iT = 1.0 / self.t_array[tt]
             iT2 = iT * iT
 
-        for i in range(self.eq_steps):
-            self.mc_move(config, iT)
+            for i in range(self.eq_steps):
+                self.mc_move(config, iT)
 
-        for i in range(self.mc_steps):
-            self.mc_move(config, iT)
-            ene = self.calc_energy(config)
-            mag = self.calc_mag(config)
+            for i in range(self.mc_steps):
+                self.mc_move(config, iT)
+                ene = self.calc_energy(config)
+                mag = self.calc_mag(config)
 
-            E1 = E1 + ene
-            M1 = M1 + mag
-            M2 = M2 + mag * mag
-            E2 = E2 + ene * ene
+                E1 = E1 + ene
+                M1 = M1 + mag
+                M2 = M2 + mag * mag
+                E2 = E2 + ene * ene
 
         # Guardar los valores de energía y magnetización
-        self.E[tt] = self.n1 * E1
-        self.M[tt] = self.n1 * M1
-        self.C[tt] = (self.n1 * E2 - self.n2 * E1 * E1) * iT2
-        self.X[tt] = (self.n1 * M2 - self.n2 * M1 * M1) * iT
+            self.E[tt] = self.n1 * E1
+            self.M[tt] = self.n1 * M1
+            self.C[tt] = (self.n1 * E2 - self.n2 * E1 * E1) * iT2
+            self.X[tt] = (self.n1 * M2 - self.n2 * M1 * M1) * iT
 
-        # graficamos
         plt.figure(figsize=(8, 6))
-        plt.scatter(self.t_array, np.abs(self.M), s = 50, marker='o')
+        plt.title('Energía vs Temperatura', fontsize = 15)
+        plt.scatter(self.t_array,  self.E, s = 50, marker='o', label = 'Energía', color = 'IndianRed')
+        plt.plot(self.t_array, gaussian_filter1d(self.E, sigma = 1), label = 'Ajuste', color = 'darkblue')
+        plt.xlabel('Temperatura (K)', fontsize = 15)
+        plt.ylabel('Energía', fontsize = 15)
+        plt.grid()
         plt.show()
+
+        plt.figure(figsize=(8, 6))
+        plt.title('Magnetización vs Temperatura', fontsize=15)
+        plt.scatter(self.t_array, abs(self.M), s=50, marker='o', label='Energía', color='IndianRed')
+        plt.plot(self.t_array, gaussian_filter1d(abs(self.M), sigma=1), label='Ajuste', color='darkblue')
+        plt.xlabel('Temperatura (K)', fontsize=15)
+        plt.ylabel('Magnetización', fontsize=15)
+        plt.grid()
+        plt.show()
+
+        plt.figure(figsize=(8, 6))
+        plt.title('Calor Especifíco vs Temperatura', fontsize=15)
+        plt.scatter(self.t_array, self.C, s=50, marker='o', label='Energía', color='IndianRed')
+        plt.plot(self.t_array, gaussian_filter1d(self.C, sigma=1), label='Ajuste', color='darkblue')
+        plt.xlabel('Temperatura (K)', fontsize=15)
+        plt.ylabel('Calor Especifíco', fontsize=15)
+        plt.grid()
+        plt.show()
+
+
 
         return

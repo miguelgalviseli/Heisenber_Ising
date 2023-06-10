@@ -6,7 +6,7 @@ import numpy as np
 if __name__ == '__main__':
     L = 100  # Lado de la red
     T = 2.0  # Temperatura
-    nsteps = 40000  # Número de pasos
+    nsteps = 4000  # Número de pasos
     J = 1  # Intercambio
     H = np.linspace(-25, 25, 100)  # Campo magnético
 
@@ -27,4 +27,4 @@ if __name__ == '__main__':
 
     print('Gráficas Dependientes de la Temperatura')
     ejemplo = Ising.IsingTemp(L, T, nsteps, J, H, nt, eq_steps, mc_steps, t_array)
-    print(ejemplo.ciclo_t())
+    ejemplo.ciclo_t()
